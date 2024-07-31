@@ -1,3 +1,7 @@
+from email.utils import formatdate
+import time
+
+
 class WebGuard:
     def __init__(self, application):
         self.application = application
@@ -10,7 +14,10 @@ class WebGuard:
     def attempt(self, username, password):
         attempt = self.options.get("model")().attempt(username, password)
         if attempt and not self.options.get("once"):
-            self.application.make("response").cookie("token", attempt.remember_token)
+            # Set the cookie expiry time to 1 year
+            cookie_expiry = formatdate(timeval=(time.time() + 60 * 60 * 24 * 365), localtime=False, usegmt=True)
+            print(f"Setting cookie expiry to {cookie_expiry}")
+            self.application.make("response").cookie("token", attempt.remember_token, expires=cookie_expiry)
             self.application.make("request").set_user(attempt)
             return attempt
 
@@ -51,6 +58,7 @@ class WebGuard:
         attempt = self.options.get("model")().attempt_by_id(user_id)
 
         if attempt and not self.options.get("once"):
+            print(f"Setting cookie for {attempt.remember_token}")
             self.application.make("response").cookie("token", attempt.remember_token)
             self.application.make("request").set_user(attempt)
             return attempt

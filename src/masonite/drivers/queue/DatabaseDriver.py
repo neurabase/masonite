@@ -205,3 +205,6 @@ class DatabaseDriver(HasColoredOutput):
                 ).to_datetime_string(),
             }
         )
+
+    def length(self):
+        return self.get_builder().count()
