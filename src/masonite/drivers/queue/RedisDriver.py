@@ -25,7 +25,7 @@ class RedisDriver(HasColoredOutput):
                 # Add delay to current unixtime
                 delay = int(time.time()) + int(delay)
             payload = {
-                "id": 1, # This is a placeholder for the job id
+                "id": 1,  # This is a placeholder for the job id
                 "obj": job,
                 "args": args,
                 "callback": self.options.get("callback", "handle"),
@@ -201,3 +201,7 @@ class RedisDriver(HasColoredOutput):
                 ).to_datetime_string(),
             }
         )
+    
+    def length(self):
+        self.connect()
+        return self.connection.llen(self.options.get("queue")) + self.connection.zcard(self.options.get("queue") + ":delayed")
