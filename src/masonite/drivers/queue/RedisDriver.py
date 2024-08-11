@@ -3,6 +3,7 @@ import time
 import pendulum
 import inspect
 from urllib import parse
+import traceback
 
 from ...utils.console import HasColoredOutput
 
@@ -46,7 +47,6 @@ class RedisDriver(HasColoredOutput):
             except Exception as e:
                 self.danger(f"Error pushing job to queue: {e}")
                 # Print a stack trace
-                import traceback
                 traceback.print_exc()
 
     def get_package_library(self):
@@ -121,9 +121,10 @@ class RedisDriver(HasColoredOutput):
                 )
 
                 getattr(obj, "failed")(job, str(e))
+                stack_trace = traceback.format_exc()
 
                 self.add_to_failed_queue_table(
-                    self.application.make("builder").new(), str(job["obj"]), payload, str(e)
+                    self.application.make("builder").new(), str(job["obj"]), payload, str(e), stack_trace
                 )
 
     def retry(self):
@@ -177,14 +178,15 @@ class RedisDriver(HasColoredOutput):
             )
 
             getattr(obj, "failed")(job, str(e))
+            stack_trace = traceback.format_exc()
 
             self.add_to_failed_queue_table(
-                self.application.make("builder").new(), str(job["obj"]), body, str(e)
+                self.application.make("builder").new(), str(job["obj"]), body, str(e), stack_trace
             )
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    def add_to_failed_queue_table(self, builder, name, payload, exception):
+    def add_to_failed_queue_table(self, builder, name, payload, exception, stack_trace=None):
         builder.table(self.options.get("failed_table", "failed_jobs")).create(
             {
                 "driver": "redis",
@@ -196,6 +198,7 @@ class RedisDriver(HasColoredOutput):
                 ).to_datetime_string(),
                 "exception": exception,
                 "payload": payload,
+                "stack_trace": stack_trace,
                 "failed_at": pendulum.now(
                     tz=self.options.get("tz", "UTC")
                 ).to_datetime_string(),
