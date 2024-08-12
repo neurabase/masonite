@@ -13,6 +13,7 @@ exit_pending: bool = False
 def handle_sigterm(signum, frame):
     global exit_pending
     exit_pending = True
+    print("Caught SIGTERM... Setting exit flag")
 
 signal.signal(signal.SIGTERM, handle_sigterm)
 
