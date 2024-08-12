@@ -15,7 +15,13 @@ def handle_sigterm(signum, frame):
     exit_pending = True
     print("Caught SIGTERM... Setting exit flag")
 
+def handle_sigint(signum, frame):
+    global exit_pending
+    exit_pending = True
+    print("Caught SIGINT... Setting exit flag")
+
 signal.signal(signal.SIGTERM, handle_sigterm)
+signal.signal(signal.SIGINT, handle_sigint)
 
 class RedisDriver(HasColoredOutput):
     def __init__(self, application):
