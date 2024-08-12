@@ -4,9 +4,17 @@ import pendulum
 import inspect
 from urllib import parse
 import traceback
+import signal
 
 from ...utils.console import HasColoredOutput
 
+exit_pending: bool = False
+
+def handle_sigterm(signum, frame):
+    global exit_pending
+    exit_pending = True
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 class RedisDriver(HasColoredOutput):
     def __init__(self, application):
@@ -126,6 +134,9 @@ class RedisDriver(HasColoredOutput):
                 self.add_to_failed_queue_table(
                     self.application.make("builder").new(), str(job["obj"]), payload, str(e), stack_trace
                 )
+            
+            if exit_pending:
+                break
 
     def retry(self):
         builder = (
