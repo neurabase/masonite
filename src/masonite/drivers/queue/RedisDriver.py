@@ -109,6 +109,8 @@ class RedisDriver(HasColoredOutput):
             self._reschedule_delayed_jobs()
             payload = self.connection.rpop(self.options.get("queue"))
             if payload is None:
+                if exit_pending:
+                    break
                 time.sleep(int(self.options.get("poll", 1)))
                 continue
             job = pickle.loads(payload)
