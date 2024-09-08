@@ -35,7 +35,7 @@ class RedisDriver(HasColoredOutput):
 
     def push(self, *jobs, args=(), **kwargs):
         for job in jobs:
-            delay = self.options.get("delay", 0)
+            delay = kwargs.get("delay", 0)
             self.info(f"Pushing job {job} to queue {self.options}")
             if delay:
                 # Add delay to current unixtime
