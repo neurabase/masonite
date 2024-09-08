@@ -137,6 +137,8 @@ class RedisDriver(HasColoredOutput):
                     f"[{job_id}][{pendulum.now(tz=self.options.get('tz', 'UTC')).to_datetime_string()}] Job Failed"
                 )
                 stack_trace = traceback.format_exc()
+                self.danger(str(e))
+                self.danger(stack_trace)
                 self.add_to_failed_queue_table(
                     self.application.make("builder").new(), str(job["obj"]), payload, str(e), stack_trace
                 )
